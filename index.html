@@ -1,0 +1,174 @@
+<!-- Full Screen template -->
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Lucky Road</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="shortcut icon" href="Lucky-Road-Icon.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            touch-action: none;
+        }
+
+        #unity-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #FFFFFF;
+        }
+
+        #unity-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #loading-cover {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        #unity-loading-bar {
+            width: 80%;
+            max-width: 300px;
+            margin-top: 20px;
+        }
+
+        #unity-progress-bar-empty {
+            width: 100%;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #unity-progress-bar-full {
+            width: 0%;
+            height: 100%;
+            background: #4CAF50;
+            transition: width 0.5s ease;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            border-top-color: #000000;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .unity-mobile #unity-canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="unity-container" class="unity-desktop">
+        <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+    </div>
+
+    <div id="loading-cover">
+        <div class="spinner"></div>
+        <div id="unity-loading-bar">
+            <div id="unity-progress-bar-empty">
+                <div id="unity-progress-bar-full"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var buildUrl = "Build";
+        var loaderUrl = buildUrl + "/Web 7.loader.js";
+        var config = {
+            dataUrl: buildUrl + "/Web 7.data",
+            frameworkUrl: buildUrl + "/Web 7.framework.js",
+            codeUrl: buildUrl + "/Web 7.wasm",
+            streamingAssetsUrl: "StreamingAssets",
+            companyName: "Lucky Road Game",
+            productName: "Lucky Road",
+            productVersion: "0.68",
+            devicePixelRatio: 1
+        };
+
+        var container = document.querySelector("#unity-container");
+        var canvas = document.querySelector("#unity-canvas");
+        var loadingCover = document.querySelector("#loading-cover");
+        var progressBarFull = document.querySelector("#unity-progress-bar-full");
+        var spinner = document.querySelector(".spinner");
+
+        loadingCover.style.display = "flex";
+        progressBarFull.style.width = "0%";
+
+        var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+            container.className = "unity-mobile";
+            config.devicePixelRatio = Math.min(window.devicePixelRatio, 2);
+
+            document.body.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+        }
+
+        function onWindowResize() {
+            if (window.unityInstance) {
+                // window.unityInstance.Module.SetCanvasSize(window.innerWidth, window.innerHeight);
+            }
+        }
+
+        var script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = function() {
+            createUnityInstance(canvas, config, function(progress) {
+                progressBarFull.style.width = `${100 * progress}%`;
+                if (progress === 1) {
+                    spinner.style.display = "none";
+                }
+            }).then(function(unityInstance) {
+                window.unityInstance = unityInstance;
+                loadingCover.style.display = "none";
+                onWindowResize();
+                window.addEventListener('resize', onWindowResize);
+            }).catch(function(message) {
+                alert("Failed to load: " + message);
+            });
+        };
+        document.body.appendChild(script);
+
+ // window.IsMobilePlatform = function () 
+  //{
+  //  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  //};
+
+    </script>
+</body>
+</html>
